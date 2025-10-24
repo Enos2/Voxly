@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Voxly • Player</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Voxly</h1>
+      <p class="subtitle">Your voice. Your stage.</p>
+    </header>
+
+    <main class="card">
+      <div class="list-area">
+        <label for="trackSelect" class="label">Available Tracks</label>
+        <select id="trackSelect" aria-label="Select track">
+          <option value="">Loading tracks…</option>
+        </select>
+      </div>
+
+      <div class="player-area">
+        <audio id="audioPlayer" controls preload="none"></audio>
+        <div id="nowPlaying" class="now-playing">Not playing</div>
+      </div>
+
+      <div id="status" class="status"></div>
+    </main>
+
+    <footer class="footer">
+      <small>Voxly • Backend: localhost:5000</small>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

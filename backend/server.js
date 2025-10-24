@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import audioRoutes from "./routes/audioRoutes.js"; // ✅ audio streaming routes
+import audioRoutes from "./routes/audioRoutes.js"; // ✅ Audio streaming routes
 
 // ✅ Load environment variables
 dotenv.config();
@@ -32,7 +32,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/audio", audioRoutes);
 
-// ✅ Audio streaming route (for your chris.mp3)
+// ✅ Audio streaming route (for direct testing like chris.mp3)
 app.get("/api/audio/stream", (req, res) => {
   const filePath = path.join(__dirname, "uploads", "chris.mp3");
 
@@ -66,6 +66,27 @@ app.get("/api/audio/stream", (req, res) => {
     res.writeHead(200, head);
     fs.createReadStream(filePath).pipe(res);
   }
+});
+
+// ✅ Get list of all uploaded audio files
+app.get("/api/audio/list", (req, res) => {
+  const uploadsDir = path.join(__dirname, "uploads");
+
+  fs.readdir(uploadsDir, (err, files) => {
+    if (err) {
+      console.error("Error reading uploads directory:", err);
+      return res.status(500).json({ error: "Error reading uploads folder" });
+    }
+
+    // Filter only MP3 files
+    const songs = files.filter((file) => file.endsWith(".mp3"));
+
+    if (songs.length === 0) {
+      return res.status(404).json({ message: "No audio files found in uploads folder." });
+    }
+
+    res.json(songs);
+  });
 });
 
 // ✅ Default route
