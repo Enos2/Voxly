@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 
 import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import audioRoutes from "./routes/audioRoutes.js"; // ✅ Audio streaming routes
+import audioRoutes from "./routes/audioRoutes.js"; // Audio streaming routes
 
 // ✅ Load environment variables
 dotenv.config();
@@ -27,14 +27,15 @@ app.use(cors());
 // ✅ Serve static files from "uploads" folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ Routes
+// ✅ Connect routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/audio", audioRoutes);
 
-// ✅ Audio streaming route (for direct testing like chris.mp3)
-app.get("/api/audio/stream", (req, res) => {
-  const filePath = path.join(__dirname, "uploads", "chris.mp3");
+// ✅ STREAM ANY AUDIO FILE (Dynamic route)
+app.get("/api/audio/stream/:filename", (req, res) => {
+  const fileName = req.params.filename;
+  const filePath = path.join(__dirname, "uploads", fileName);
 
   if (!fs.existsSync(filePath)) {
     return res.status(404).send("Audio file not found!");
@@ -68,7 +69,7 @@ app.get("/api/audio/stream", (req, res) => {
   }
 });
 
-// ✅ Get list of all uploaded audio files
+// ✅ GET LIST OF ALL AUDIO FILES
 app.get("/api/audio/list", (req, res) => {
   const uploadsDir = path.join(__dirname, "uploads");
 
@@ -78,14 +79,11 @@ app.get("/api/audio/list", (req, res) => {
       return res.status(500).json({ error: "Error reading uploads folder" });
     }
 
-    // Filter only MP3 files
-    const songs = files.filter((file) => file.endsWith(".mp3"));
+    // Filter only audio files
+    const audioFiles = files.filter(file => /\.(mp3|wav|ogg)$/i.test(file));
 
-    if (songs.length === 0) {
-      return res.status(404).json({ message: "No audio files found in uploads folder." });
-    }
-
-    res.json(songs);
+    // ✅ Always return an array — even if empty
+    res.json(audioFiles);
   });
 });
 
