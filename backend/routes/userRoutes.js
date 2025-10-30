@@ -2,9 +2,16 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
-import { verifyToken } from "../middleware/authMiddleware.js"; // Use your existing middleware
+import { verifyToken } from "../middleware/authMiddleware.js";
+import { registerUser, loginUser } from "../controllers/userController.js"; // ✅ New imports
 
 const router = express.Router();
+
+/* ──────────────────────────────────────────────
+   🔐 Authentication Routes
+────────────────────────────────────────────── */
+router.post("/register", registerUser);
+router.post("/login", loginUser);
 
 /* ──────────────────────────────────────────────
    👤 Get Current User Profile (Protected)

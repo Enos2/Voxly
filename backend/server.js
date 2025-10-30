@@ -3,13 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
-import fs from "fs";
 import { fileURLToPath } from "url";
-
-// ✅ Import routes
-import authRoutes from "./routes/authRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import audioRoutes from "./routes/audioRoutes.js"; // Audio streaming routes
 
 // ✅ Load environment variables
 dotenv.config();
@@ -18,92 +12,77 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ✅ Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Middleware
-app.use(cors());
-app.use(express.json());
+/* ──────────────────────────────────────────────
+   ⚙️ Global Middleware
+────────────────────────────────────────────── */
+// Enable CORS for all origins (you can restrict later)
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 
-// ✅ Serve static files (uploads)
+// Parse JSON and form data properly
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// 🪩 Body Debug Middleware (for debugging empty req.body issues)
+app.use((req, res, next) => {
+  console.log("🟢 Incoming Request:");
+  console.log("➡️ Method:", req.method);
+  console.log("➡️ Path:", req.path);
+  console.log("➡️ Headers:", req.headers["content-type"]);
+  console.log("➡️ Body:", req.body);
+  console.log("───────────────────────────────");
+  next();
+});
+
+// ✅ Serve static uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ Routes
-app.use("/api/auth", authRoutes); // 🔐 Authentication
-app.use("/api/user", userRoutes); // 👤 User management
-app.use("/api/audio", audioRoutes); // 🎵 Audio upload + metadata routes
+/* ──────────────────────────────────────────────
+   🧩 Import & Register Routes
+────────────────────────────────────────────── */
+import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import audioRoutes from "./routes/audioRoutes.js";
+import interactionRoutes from "./routes/interactionRoutes.js";
+import newsRoutes from "./routes/newsRoutes.js";
+
+app.use("/api/auth", authRoutes); // 🔐 Authentication (register/login)
+app.use("/api/user", userRoutes); // 👤 User routes
+app.use("/api/audio", audioRoutes); // 🎵 Audio upload & streaming
+app.use("/api/interactions", interactionRoutes); // 💬 Likes/comments system
+app.use("/api/news", newsRoutes); // 📰 News & updates
 
 /* ──────────────────────────────────────────────
-   🎧 STREAM ANY AUDIO FILE (Dynamic route)
+   🩺 Health Check / Root Route
 ────────────────────────────────────────────── */
-app.get("/api/audio/stream/:filename", (req, res) => {
-  const fileName = req.params.filename;
-  const filePath = path.join(__dirname, "uploads", fileName);
-
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ message: "Audio file not found" });
-  }
-
-  const stat = fs.statSync(filePath);
-  const fileSize = stat.size;
-  const range = req.headers.range;
-
-  if (range) {
-    const [startStr, endStr] = range.replace(/bytes=/, "").split("-");
-    const start = parseInt(startStr, 10);
-    const end = endStr ? parseInt(endStr, 10) : fileSize - 1;
-    const chunkSize = end - start + 1;
-    const file = fs.createReadStream(filePath, { start, end });
-    const head = {
-      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-      "Accept-Ranges": "bytes",
-      "Content-Length": chunkSize,
-      "Content-Type": "audio/mpeg",
-    };
-    res.writeHead(206, head);
-    file.pipe(res);
-  } else {
-    res.writeHead(200, {
-      "Content-Length": fileSize,
-      "Content-Type": "audio/mpeg",
-    });
-    fs.createReadStream(filePath).pipe(res);
-  }
-});
-
-/* ──────────────────────────────────────────────
-   📜 LIST ALL AUDIO FILES
-────────────────────────────────────────────── */
-app.get("/api/audio/list", (req, res) => {
-  const uploadsDir = path.join(__dirname, "uploads");
-
-  fs.readdir(uploadsDir, (err, files) => {
-    if (err) {
-      console.error("❌ Error reading uploads directory:", err);
-      return res.status(500).json({ error: "Error reading uploads folder" });
-    }
-
-    // Filter only audio formats
-    const audioFiles = files.filter((file) => /\.(mp3|wav|ogg)$/i.test(file));
-    res.status(200).json(audioFiles || []);
-  });
-});
-
-// ✅ Default route
 app.get("/", (req, res) => {
-  res.send("🎙️ Voxly API is active — Auth, Users & Streaming ready!");
+  res
+    .status(200)
+    .send(
+      "🎧 Voxly API active — Auth, Users, Audio, and Interactions running smoothly!"
+    );
 });
 
-// ✅ MongoDB Connection
+/* ──────────────────────────────────────────────
+   💾 MongoDB Connection
+────────────────────────────────────────────── */
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected successfully"))
   .catch((err) => console.error("❌ MongoDB connection failed:", err));
 
-// ✅ Start the server
+/* ──────────────────────────────────────────────
+   🚀 Start Server
+────────────────────────────────────────────── */
 app.listen(PORT, () => {
   console.log(`🚀 Voxly backend running on port ${PORT}`);
 });
