@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["listener", "creator", "admin"],
+      enum: ["listener", "artist", "admin"], // ✅ "artist" replaces "creator"
       default: "listener",
     },
     status: {
@@ -38,6 +38,8 @@ const userSchema = new mongoose.Schema(
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
+    // 💰 Creator / Artist stats
     balance: { type: Number, default: 0 },
     totalEarnings: { type: Number, default: 0 },
     totalHoursStreamed: { type: Number, default: 0 },
@@ -45,7 +47,9 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// 🔐 Hash password before saving
+/* ──────────────────────────────────────────────
+ 🔐 Hash password before saving
+────────────────────────────────────────────── */
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   try {
@@ -57,17 +61,30 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// 🔑 Compare password during login
+/* ──────────────────────────────────────────────
+ 🔑 Compare password during login
+────────────────────────────────────────────── */
 userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  return bcrypt.compare(enteredPassword, this.password);
 };
 
-// Remove sensitive info when sending JSON
+/* ──────────────────────────────────────────────
+ 🧹 Clean JSON output (hide password, __v)
+────────────────────────────────────────────── */
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
+  delete obj.__v;
   return obj;
 };
+
+/* ──────────────────────────────────────────────
+ 🧠 Auto-convert legacy "creator" → "artist"
+────────────────────────────────────────────── */
+userSchema.pre("save", function (next) {
+  if (this.role === "creator") this.role = "artist";
+  next();
+});
 
 const User = mongoose.model("User", userSchema);
 export default User;

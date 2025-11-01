@@ -1,0 +1,53 @@
+import mongoose from "mongoose";
+
+const audioSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    artist: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      default: "",
+    },
+    filePath: {
+      type: String,
+      required: true,
+    },
+    coverImage: {
+      type: String,
+      default: "", // Optional cover image for UI display
+    },
+    duration: {
+      type: Number,
+      default: 0, // Duration in seconds
+    },
+    genre: {
+      type: String,
+      default: "Unknown",
+    },
+    likes: {
+      type: Number,
+      default: 0,
+    },
+    plays: {
+      type: Number,
+      default: 0,
+    },
+    uploader: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
+
+const Audio = mongoose.model("Audio", audioSchema);
+export default Audio;

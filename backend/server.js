@@ -5,21 +5,26 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// ✅ Load environment variables
+/* ──────────────────────────────────────────────
+   ⚙️ Load Environment Variables
+────────────────────────────────────────────── */
 dotenv.config();
 
-// ✅ Fix for __dirname in ES Modules
+/* ──────────────────────────────────────────────
+   📍 Fix for __dirname in ES Modules
+────────────────────────────────────────────── */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Initialize Express app
+/* ──────────────────────────────────────────────
+   🚀 Initialize Express App
+────────────────────────────────────────────── */
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 /* ──────────────────────────────────────────────
-   ⚙️ Global Middleware
+   🧩 Global Middleware
 ────────────────────────────────────────────── */
-// Enable CORS for all origins (you can restrict later)
 app.use(
   cors({
     origin: "*",
@@ -28,11 +33,10 @@ app.use(
   })
 );
 
-// Parse JSON and form data properly
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// 🪩 Body Debug Middleware (for debugging empty req.body issues)
+// Debug Middleware (optional)
 app.use((req, res, next) => {
   console.log("🟢 Incoming Request:");
   console.log("➡️ Method:", req.method);
@@ -43,33 +47,36 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Serve static uploaded files
+// Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 /* ──────────────────────────────────────────────
-   🧩 Import & Register Routes
+   📦 Import Routes
 ────────────────────────────────────────────── */
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import audioRoutes from "./routes/audioRoutes.js";
 import interactionRoutes from "./routes/interactionRoutes.js";
 import newsRoutes from "./routes/newsRoutes.js";
-
-app.use("/api/auth", authRoutes); // 🔐 Authentication (register/login)
-app.use("/api/user", userRoutes); // 👤 User routes
-app.use("/api/audio", audioRoutes); // 🎵 Audio upload & streaming
-app.use("/api/interactions", interactionRoutes); // 💬 Likes/comments system
-app.use("/api/news", newsRoutes); // 📰 News & updates
+import profileRoutes from "./routes/profileRoutes.js"; // ✅ Added
 
 /* ──────────────────────────────────────────────
-   🩺 Health Check / Root Route
+   🛠️ Register Routes
+────────────────────────────────────────────── */
+app.use("/api/auth", authRoutes);          // 🔐 Authentication
+app.use("/api/user", userRoutes);          // 👤 User routes
+app.use("/api/audio", audioRoutes);        // 🎵 Audio upload & streaming
+app.use("/api/interactions", interactionRoutes); // 💬 Likes/comments system
+app.use("/api/news", newsRoutes);          // 📰 News & updates
+app.use("/api/profile", profileRoutes);    // 🧩 Profile routes ✅ NEW
+
+/* ──────────────────────────────────────────────
+   🩺 Health Check Route
 ────────────────────────────────────────────── */
 app.get("/", (req, res) => {
   res
     .status(200)
-    .send(
-      "🎧 Voxly API active — Auth, Users, Audio, and Interactions running smoothly!"
-    );
+    .send("🎧 Voxly API active — Auth, Profile, Audio, and Interactions running smoothly!");
 });
 
 /* ──────────────────────────────────────────────

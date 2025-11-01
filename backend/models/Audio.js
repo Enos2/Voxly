@@ -10,6 +10,7 @@ const audioSchema = new mongoose.Schema(
     description: {
       type: String,
       trim: true,
+      default: "",
     },
     artist: {
       type: String,
@@ -32,6 +33,7 @@ const audioSchema = new mongoose.Schema(
     genre: {
       type: String,
       trim: true,
+      default: "General",
     },
     duration: {
       type: Number, // in seconds
@@ -51,9 +53,31 @@ const audioSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    streamUrl: {
+      type: String, // auto-generated URL for playback
+      required: false,
+    },
+    views: {
+      type: Number,
+      default: 0,
+    },
+    moodTags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    language: {
+      type: String,
+      trim: true,
+      default: "English",
+    },
   },
   { timestamps: true }
 );
+
+// 🧠 Indexing for fast discovery & shuffle algorithms
+audioSchema.index({ title: "text", artist: "text", genre: "text", moodTags: "text" });
 
 const Audio = mongoose.model("Audio", audioSchema);
 export default Audio;
