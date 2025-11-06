@@ -2,7 +2,6 @@ import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-
 dotenv.config();
 
 // Generate JWT token
@@ -63,8 +62,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Email and password required" });
 
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch)
@@ -83,5 +81,17 @@ export const login = async (req, res) => {
   } catch (error) {
     console.error("❌ Login Error:", error.message);
     res.status(500).json({ message: "Server error during login" });
+  }
+};
+
+// Logout user
+export const logout = async (req, res) => {
+  try {
+    // If using cookies, you can clear them here, e.g. res.clearCookie("token")
+    // If using localStorage token, just inform frontend to remove it
+    res.status(200).json({ message: "User logged out successfully" });
+  } catch (error) {
+    console.error("❌ Logout Error:", error.message);
+    res.status(500).json({ message: "Server error during logout" });
   }
 };

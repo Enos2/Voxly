@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import User from "../models/userModel.js";
+import TokenBlacklist from "../models/tokenBlacklistModel.js"; // 🆕 new model for blacklisted tokens
 
 dotenv.config();
 
@@ -11,25 +12,34 @@ export const verifyToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
+    // 🧱 Check for authorization header
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ message: "Authorization token missing" });
     }
 
     const token = authHeader.split(" ")[1];
+
+    // 🚫 Check if token is blacklisted
+    const blacklisted = await TokenBlacklist.findOne({ token });
+    if (blacklisted) {
+      return res.status(401).json({ message: "Session expired. Please log in again." });
+    }
+
+    // 🔍 Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ Fetch user and ensure they exist
+    // ✅ Fetch user
     const user = await User.findById(decoded.id).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found or has been deleted" });
     }
 
-    // ✅ Ensure active status (if applicable)
+    // 🧱 Check if user account is active
     if (user.status && user.status !== "active") {
       return res.status(403).json({ message: "Account is not active" });
     }
 
-    // ✅ Attach a clean, minimal user object
+    // ✅ Attach user
     req.user = {
       id: user._id,
       username: user.username,
@@ -42,7 +52,7 @@ export const verifyToken = async (req, res, next) => {
     console.error("❌ Token verification failed:", error.message);
 
     if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "Token has expired. Please log in again." });
+      return res.status(401).json({ message: "Token expired. Please log in again." });
     }
 
     if (error.name === "JsonWebTokenError") {
@@ -54,23 +64,46 @@ export const verifyToken = async (req, res, next) => {
 };
 
 /* ──────────────────────────────────────────────
- 🛡 Restrict route to Admins only
+ 🛡 Role-based Access Control (RBAC)
 ────────────────────────────────────────────── */
-export const adminOnly = (req, res, next) => {
-  if (req.user?.role === "admin") {
-    next();
-  } else {
-    res.status(403).json({ message: "Access denied — Admins only." });
-  }
+export const allowRoles = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (allowedRoles.includes(req.user?.role)) {
+      next();
+    } else {
+      res.status(403).json({ message: `Access denied — ${allowedRoles.join(", ")} only.` });
+    }
+  };
 };
 
 /* ──────────────────────────────────────────────
- 🎤 Restrict route to Artists only
+ 👑 Shortcuts for common roles
 ────────────────────────────────────────────── */
-export const artistOnly = (req, res, next) => {
-  if (req.user?.role === "artist") {
-    next();
-  } else {
-    res.status(403).json({ message: "Access denied — Artists only." });
+export const adminOnly = allowRoles("admin");
+export const artistOnly = allowRoles("artist");
+export const supportOnly = allowRoles("support", "admin");
+
+/* ──────────────────────────────────────────────
+ 🚪 Logout — Blacklist a Token
+────────────────────────────────────────────── */
+export const logoutUser = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(400).json({ message: "Token missing" });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    // Store token in blacklist with expiry time matching the JWT
+    const decoded = jwt.decode(token);
+    const expiry = new Date(decoded.exp * 1000);
+
+    await TokenBlacklist.create({ token, expiresAt: expiry });
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("❌ Logout failed:", error.message);
+    res.status(500).json({ message: "Logout error", error: error.message });
   }
 };

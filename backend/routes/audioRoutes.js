@@ -3,14 +3,27 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import Audio from "../models/audioModel.js"; // ✅ Make sure the name matches your file
 import { verifyToken } from "../middleware/authMiddleware.js";
+
+// 🎧 Import controller functions
+import {
+  uploadAudio,
+  streamAudio,
+  likeAudio,
+  saveReplay,
+  commentAudio,
+  moderateAudio,
+} from "../controllers/audioController.js";
+
+import Audio from "../models/Audio.js";
 
 const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ Ensure uploads directory exists
+/* ──────────────────────────────────────────────
+ 📂 Ensure uploads directory exists
+────────────────────────────────────────────── */
 const uploadsDir = path.join(__dirname, "..", "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
@@ -20,12 +33,7 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) =>
-    cb(
-      null,
-      `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(
-        file.originalname
-      )}`
-    ),
+    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`),
 });
 
 const fileFilter = (req, file, cb) => {
@@ -37,119 +45,30 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+  limits: { fileSize: 100 * 1024 * 1024 },
 });
 
 /* ──────────────────────────────────────────────
- 📤 Upload Audio (authenticated)
+ 📤 Upload Audio or Live Replay
 ────────────────────────────────────────────── */
-router.post("/upload", verifyToken, upload.single("audio"), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ message: "No audio file uploaded" });
-
-    const { title, artist, description, genre, isPublic } = req.body;
-
-    const newAudio = new Audio({
-      title: title || req.file.originalname.replace(/\.[^/.]+$/, ""),
-      artist: artist || req.user?.username || "Unknown Artist",
-      description: description || "",
-      genre: genre || "Unknown",
-      isPublic: isPublic ?? true,
-      uploader: req.user.id,
-      filePath: `/uploads/${req.file.filename}`,
-    });
-
-    await newAudio.save();
-
-    res.status(201).json({
-      message: "✅ Audio uploaded successfully!",
-      audio: {
-        ...newAudio._doc,
-        streamUrl: `${req.protocol}://${req.get("host")}/api/audio/stream/${req.file.filename}`,
-      },
-    });
-  } catch (error) {
-    console.error("❌ Upload error:", error);
-    res.status(500).json({ message: "Error uploading audio", error: error.message });
-  }
-});
+router.post("/upload", verifyToken, upload.single("audio"), uploadAudio);
 
 /* ──────────────────────────────────────────────
- 🎧 Stream Audio
+ 🎧 Stream Audio + Increment Plays
 ────────────────────────────────────────────── */
-router.get("/stream/:filename", (req, res) => {
-  try {
-    const filePath = path.join(uploadsDir, req.params.filename);
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: "Audio file not found" });
-    }
-
-    const stat = fs.statSync(filePath);
-    const fileSize = stat.size;
-    const range = req.headers.range;
-
-    if (range) {
-      const [startStr, endStr] = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(startStr, 10);
-      const end = endStr ? parseInt(endStr, 10) : fileSize - 1;
-      const chunkSize = end - start + 1;
-      const file = fs.createReadStream(filePath, { start, end });
-
-      res.writeHead(206, {
-        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-        "Accept-Ranges": "bytes",
-        "Content-Length": chunkSize,
-        "Content-Type": "audio/mpeg",
-      });
-
-      file.pipe(res);
-    } else {
-      res.writeHead(200, {
-        "Content-Length": fileSize,
-        "Content-Type": "audio/mpeg",
-      });
-      fs.createReadStream(filePath).pipe(res);
-    }
-  } catch (error) {
-    console.error("❌ Streaming error:", error);
-    res.status(500).json({ message: "Error streaming audio" });
-  }
-});
+router.get("/stream/:id", streamAudio);
 
 /* ──────────────────────────────────────────────
- 📜 Get All Audio (database + disk)
+ 📜 Get All Audio
 ────────────────────────────────────────────── */
 router.get("/list", async (req, res) => {
   try {
-    const dbAudios = await Audio.find().sort({ createdAt: -1 });
-    const filesOnDisk = fs.readdirSync(uploadsDir).filter(f => /\.(mp3|wav|m4a|ogg)$/i.test(f));
-
-    const dbFileNames = dbAudios.map(a => a.filePath.split("/").pop());
-    const missingFiles = filesOnDisk.filter(f => !dbFileNames.includes(f));
-
-    const combinedList = [
-      ...dbAudios.map(a => ({
-        _id: a._id,
-        title: a.title,
-        artist: a.artist,
-        genre: a.genre,
-        filename: a.filePath.split("/").pop(),
-        uploader: a.uploader,
-        createdAt: a.createdAt,
-        source: "db",
-        streamUrl: `${req.protocol}://${req.get("host")}/api/audio/stream/${a.filePath.split("/").pop()}`,
-      })),
-      ...missingFiles.map(f => ({
-        title: f.replace(/\.[^/.]+$/, ""),
-        artist: "Unknown Artist",
-        genre: "Unknown",
-        filename: f,
-        source: "disk",
-        streamUrl: `${req.protocol}://${req.get("host")}/api/audio/stream/${f}`,
-      })),
-    ];
-
-    res.status(200).json(combinedList);
+    const audios = await Audio.find().populate("uploader", "username email").sort({ createdAt: -1 });
+    const response = audios.map(a => ({
+      ...a._doc,
+      streamUrl: `${req.protocol}://${req.get("host")}/api/audio/stream/${a._id}`,
+    }));
+    res.status(200).json(response);
   } catch (error) {
     console.error("❌ Fetch error:", error);
     res.status(500).json({ message: "Error fetching audio list", error: error.message });
@@ -157,10 +76,53 @@ router.get("/list", async (req, res) => {
 });
 
 /* ──────────────────────────────────────────────
+ ▶️ Like / Unlike
+────────────────────────────────────────────── */
+router.post("/like/:id", verifyToken, likeAudio);
+
+/* ──────────────────────────────────────────────
+ 💬 Comment on Audio
+────────────────────────────────────────────── */
+router.post("/comment/:id", verifyToken, commentAudio);
+
+/* ──────────────────────────────────────────────
+ 💾 Save Replay (creator only)
+────────────────────────────────────────────── */
+router.post("/replay/save", verifyToken, saveReplay);
+
+/* ──────────────────────────────────────────────
+ ⚖️ Moderate Audio (admin use)
+────────────────────────────────────────────── */
+router.post("/moderate/:id", verifyToken, moderateAudio);
+
+/* ──────────────────────────────────────────────
+ 🗑️ Delete Audio (uploader or admin)
+────────────────────────────────────────────── */
+router.delete("/:id", verifyToken, async (req, res) => {
+  try {
+    const audio = await Audio.findById(req.params.id);
+    if (!audio) return res.status(404).json({ message: "Audio not found" });
+
+    if (audio.uploader.toString() !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized to delete this audio" });
+    }
+
+    const filePath = path.join(uploadsDir, audio.filePath.split("/").pop());
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    await audio.deleteOne();
+    res.json({ message: "✅ Audio deleted successfully" });
+  } catch (error) {
+    console.error("❌ Delete error:", error);
+    res.status(500).json({ message: "Error deleting audio" });
+  }
+});
+
+/* ──────────────────────────────────────────────
  🧠 Health/Test route
 ────────────────────────────────────────────── */
 router.get("/", (req, res) => {
-  res.send("🎵 Audio route active — upload, stream, list ready!");
+  res.send("🎵 Audio routes active — upload, stream, list, like, comment, replay, delete, moderate ready!");
 });
 
 export default router;
