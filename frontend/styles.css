@@ -1,141 +1,224 @@
-:root {
-  --bg1: #071021;
-  --bg2: #0f2a3a;
-  --accent: #00d4ff;
-  --muted: #b7c6cc;
-}
-
-* {
-  box-sizing: border-box;
-}
-
+/* ────────────────────────────────────────────── */
+/* GLOBAL STYLES */
 body {
   margin: 0;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  background: linear-gradient(135deg, var(--bg1), var(--bg2));
-  color: #fff;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #000000; /* main background */
+  color: #ffffff;
 }
 
 .container {
-  width: 370px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ────────────────────────────────────────────── */
+/* HEADER / LOGO */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 20px;
   text-align: center;
 }
 
-.header h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  letter-spacing: 0.5px;
-}
-
-.subtitle {
-  margin: 6px 0 14px;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.card {
-  background: rgba(255, 255, 255, 0.06);
-  padding: 18px;
-  border-radius: 14px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  -webkit-backdrop-filter: blur(5px); /* Safari fix */
-  backdrop-filter: blur(5px);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
-}
-
-.list-area {
-  margin-bottom: 16px;
-  text-align: left;
-}
-
-.label {
-  display: block;
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin-bottom: 6px;
-}
-
-select {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  font-size: 0.95rem;
-  outline: none;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-select:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.player-area {
-  margin-top: 14px;
-}
-
-.cover-art {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.logo {
+  width: 100px;
+  height: auto;
   margin-bottom: 10px;
 }
 
-.vinyl {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 4px solid var(--accent);
-  background: radial-gradient(circle, #000 60%, #333 100%);
-  animation: spin 6s linear infinite paused;
-  box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+.header h1 {
+  color: #0284f6;
+  margin: 0;
+  font-size: 2rem;
 }
 
-audio {
-  width: 100%;
-  outline: none;
+.header .subtitle {
+  color: #700198;
+  font-size: 1rem;
+}
+
+/* ────────────────────────────────────────────── */
+/* AUTHENTICATION AREA */
+.auth-card {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 350px;
+  max-width: 90%;
+  padding: 25px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background: rgba(40, 0, 183, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 0 25px #700198;
+  z-index: 10;
+}
+
+.auth-card h2 {
+  font-size: 1.6rem;
+  text-align: center;
+  color: #0284f6;
+  margin-bottom: 10px;
+}
+
+.auth-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-block input {
+  padding: 12px;
   border-radius: 8px;
-  margin-top: 6px;
-  background-color: transparent;
+  border: none;
+  font-size: 1rem;
+  outline: none;
+  transition: 0.3s;
 }
 
-.now-playing {
-  margin-top: 10px;
-  color: var(--accent);
-  font-weight: 600;
-  font-size: 0.95rem;
+.auth-block input:focus {
+  box-shadow: 0 0 10px #0284f6;
 }
 
-.status {
-  margin-top: 12px;
-  font-size: 0.9rem;
-  color: var(--muted);
-  min-height: 20px;
+.auth-block button {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #0284f6;
+  color: #ffffff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
 }
 
-.footer {
-  margin-top: 16px;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.8rem;
+.auth-block button:hover {
+  background: #700198;
+}
+
+/* ────────────────────────────────────────────── */
+/* AUDIO PLAYER AREA */
+.card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 50px 20px 20px 20px;
+  gap: 30px;
+}
+
+.list-area {
+  width: 80%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #000000;
+  padding: 15px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px #2800b7;
+}
+
+.list-area label {
+  color: #0284f6;
+  font-weight: bold;
+}
+
+#trackSelect {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #2800b7;
+  color: #ffffff;
+  font-size: 1rem;
+  outline: none;
+}
+
+.player-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.cover-art {
+  position: relative;
+  width: 150px;
+  height: 150px;
+}
+
+.vinyl {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2800b7 0%, #700198 60%, #0284f6 100%);
+  animation: spin 4s linear infinite;
+  box-shadow: 0 0 20px #0284f6;
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.playing .vinyl {
-  animation-play-state: running;
+#audioPlayer {
+  width: 300px;
+  max-width: 90%;
+  margin-top: 10px;
+}
+
+.now-playing {
+  color: #0284f6;
+  font-weight: bold;
+}
+
+.status {
+  color: #ff66cc;
+  font-weight: bold;
+}
+
+/* ────────────────────────────────────────────── */
+/* FOOTER */
+.footer {
+  text-align: center;
+  padding: 15px;
+  background: #000000;
+  color: #0284f6;
+}
+
+/* ────────────────────────────────────────────── */
+/* RESPONSIVE DESIGN */
+@media screen and (max-width: 768px) {
+  .auth-card {
+    top: 15px;
+    right: 15px;
+    width: 90%;
+    padding: 20px;
+  }
+
+  .card {
+    padding: 20px 10px 20px 10px;
+  }
+
+  .player-area {
+    gap: 15px;
+  }
+
+  .vinyl {
+    width: 120px;
+    height: 120px;
+  }
+
+  #audioPlayer {
+    width: 100%;
+  }
 }

@@ -33,7 +33,10 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) =>
-    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`),
+    cb(
+      null,
+      `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`
+    ),
 });
 
 const fileFilter = (req, file, cb) => {
@@ -45,7 +48,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 100 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB max
 });
 
 /* ──────────────────────────────────────────────
@@ -59,19 +62,22 @@ router.post("/upload", verifyToken, upload.single("audio"), uploadAudio);
 router.get("/stream/:id", streamAudio);
 
 /* ──────────────────────────────────────────────
- 📜 Get All Audio
+ 📜 Get All Audio (from filesystem for frontend)
 ────────────────────────────────────────────── */
 router.get("/list", async (req, res) => {
   try {
-    const audios = await Audio.find().populate("uploader", "username email").sort({ createdAt: -1 });
-    const response = audios.map(a => ({
-      ...a._doc,
-      streamUrl: `${req.protocol}://${req.get("host")}/api/audio/stream/${a._id}`,
+    const files = fs.readdirSync(uploadsDir);
+    const audioFiles = files.filter(file => /\.(mp3|wav|ogg|m4a)$/i.test(file));
+
+    const response = audioFiles.map(f => ({
+      title: f.replace(/\.(mp3|wav|ogg|m4a)$/i, ""),
+      streamUrl: `${req.protocol}://${req.get("host")}/uploads/${encodeURIComponent(f)}`,
     }));
+
     res.status(200).json(response);
-  } catch (error) {
-    console.error("❌ Fetch error:", error);
-    res.status(500).json({ message: "Error fetching audio list", error: error.message });
+  } catch (err) {
+    console.error("❌ List error:", err);
+    res.status(500).json({ message: "Failed to list audio files", error: err.message });
   }
 });
 
@@ -107,7 +113,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
       return res.status(403).json({ message: "Unauthorized to delete this audio" });
     }
 
-    const filePath = path.join(uploadsDir, audio.filePath.split("/").pop());
+    const filePath = path.join(uploadsDir, audio.filePath?.split("/").pop() || "");
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
     await audio.deleteOne();
@@ -122,7 +128,9 @@ router.delete("/:id", verifyToken, async (req, res) => {
  🧠 Health/Test route
 ────────────────────────────────────────────── */
 router.get("/", (req, res) => {
-  res.send("🎵 Audio routes active — upload, stream, list, like, comment, replay, delete, moderate ready!");
+  res.send(
+    "🎵 Audio routes active — upload, stream, list, like, comment, replay, delete, moderate ready!"
+  );
 });
 
 export default router;
