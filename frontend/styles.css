@@ -1,224 +1,233 @@
-/* ────────────────────────────────────────────── */
-/* GLOBAL STYLES */
-body {
+/* ────────────────────────────────────────────────────────────────
+   GLOBAL STYLES
+──────────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #000000; /* main background */
-  color: #ffffff;
+  font-family: 'Arial', sans-serif;
 }
 
-.container {
-  display: flex;
-  flex-direction: column;
+body {
+  background-color: #000000;
+  color: #fff;
   min-height: 100vh;
-}
-
-/* ────────────────────────────────────────────── */
-/* HEADER / LOGO */
-.header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  text-align: center;
 }
 
-.logo {
-  width: 100px;
-  height: auto;
-  margin-bottom: 10px;
-}
-
-.header h1 {
-  color: #0284f6;
-  margin: 0;
-  font-size: 2rem;
-}
-
-.header .subtitle {
-  color: #700198;
-  font-size: 1rem;
-}
-
-/* ────────────────────────────────────────────── */
-/* AUTHENTICATION AREA */
-.auth-card {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 350px;
-  max-width: 90%;
-  padding: 25px 30px;
+/* ────────────────────────────────────────────────────────────────
+   HEADER
+──────────────────────────────────────────────────────────────── */
+header.header {
+  width: 100%;
+  background-color: #2800b7;
+  padding: 1rem 2rem;
   display: flex;
-  flex-direction: column;
-  gap: 15px;
-  background: rgba(40, 0, 183, 0.95);
-  border-radius: 15px;
-  box-shadow: 0 0 25px #700198;
-  z-index: 10;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+}
+
+header.header img.logo {
+  width: 50px;
+  height: 50px;
+}
+
+header.header h1 {
+  font-size: 1.8rem;
+  color: #0284f6;
+}
+
+header.header p.subtitle {
+  color: #ff2d95;
+  margin-left: auto;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   AUTH CARD
+──────────────────────────────────────────────────────────────── */
+.auth-card {
+  width: 100%;
+  max-width: 450px;
+  background-color: #700198;
+  padding: 2rem;
+  border-radius: 12px;
+  margin: 2rem auto;
+  box-shadow: 0 0 20px rgba(112, 1, 152, 0.7);
 }
 
 .auth-card h2 {
-  font-size: 1.6rem;
   text-align: center;
+  margin-bottom: 1.5rem;
   color: #0284f6;
-  margin-bottom: 10px;
 }
 
 .auth-block {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 1rem;
 }
 
 .auth-block input {
-  padding: 12px;
-  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
   border: none;
   font-size: 1rem;
   outline: none;
-  transition: 0.3s;
-}
-
-.auth-block input:focus {
-  box-shadow: 0 0 10px #0284f6;
 }
 
 .auth-block button {
-  padding: 12px;
+  padding: 0.8rem;
+  background-color: #0284f6;
+  color: #fff;
+  font-weight: bold;
   border: none;
-  border-radius: 8px;
-  background: #0284f6;
-  color: #ffffff;
-  font-size: 1rem;
+  border-radius: 6px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: all 0.3s ease;
 }
 
 .auth-block button:hover {
-  background: #700198;
+  background-color: #ff2d95;
 }
 
-/* ────────────────────────────────────────────── */
-/* AUDIO PLAYER AREA */
+/* ────────────────────────────────────────────────────────────────
+   LOGOUT BUTTON
+──────────────────────────────────────────────────────────────── */
+#logoutBtn {
+  position: fixed;
+  top: 1rem;
+  right: 1.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #ff2d95;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  display: none;
+  z-index: 1000;
+}
+
+#logoutBtn:hover {
+  background-color: #0284f6;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   AUDIO PLAYER
+──────────────────────────────────────────────────────────────── */
 .card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 50px 20px 20px 20px;
-  gap: 30px;
+  width: 90%;
+  max-width: 750px;
+  background-color: #000000;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(40, 0, 183, 0.7);
+  display: none; /* hidden until login */
 }
 
 .list-area {
-  width: 80%;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: #000000;
-  padding: 15px;
-  border-radius: 15px;
-  box-shadow: 0 0 15px #2800b7;
+  margin-bottom: 1.5rem;
 }
 
 .list-area label {
+  display: block;
+  margin-bottom: 0.5rem;
   color: #0284f6;
-  font-weight: bold;
 }
 
 #trackSelect {
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #2800b7;
-  color: #ffffff;
+  width: 100%;
+  padding: 0.75rem 1rem;
   font-size: 1rem;
-  outline: none;
+  border-radius: 6px;
+  border: none;
+  background-color: #2800b7;
+  color: #fff;
+  cursor: pointer;
+}
+
+#trackSelect option {
+  background-color: #2800b7;
+  color: #fff;
 }
 
 .player-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 1rem;
 }
 
 .cover-art {
-  position: relative;
-  width: 150px;
-  height: 150px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #0284f6, #700198);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 15px #0284f6;
+  transition: all 0.3s ease;
+}
+
+.cover-art.playing {
+  box-shadow: 0 0 30px #ff2d95;
 }
 
 .vinyl {
-  width: 150px;
-  height: 150px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
-  background: radial-gradient(circle, #2800b7 0%, #700198 60%, #0284f6 100%);
-  animation: spin 4s linear infinite;
-  box-shadow: 0 0 20px #0284f6;
+  background-color: #000;
+  border: 5px solid #ff2d95;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-#audioPlayer {
-  width: 300px;
-  max-width: 90%;
-  margin-top: 10px;
+audio#audioPlayer {
+  width: 100%;
+  outline: none;
+  margin-top: 1rem;
 }
 
 .now-playing {
+  font-size: 1.2rem;
   color: #0284f6;
-  font-weight: bold;
+  text-align: center;
 }
 
 .status {
-  color: #ff66cc;
-  font-weight: bold;
+  margin-top: 1rem;
+  text-align: center;
 }
 
-/* ────────────────────────────────────────────── */
-/* FOOTER */
-.footer {
+/* ────────────────────────────────────────────────────────────────
+   FOOTER
+──────────────────────────────────────────────────────────────── */
+footer.footer {
+  margin-top: auto;
+  padding: 1rem;
   text-align: center;
-  padding: 15px;
-  background: #000000;
   color: #0284f6;
 }
 
-/* ────────────────────────────────────────────── */
-/* RESPONSIVE DESIGN */
-@media screen and (max-width: 768px) {
-  .auth-card {
-    top: 15px;
-    right: 15px;
-    width: 90%;
-    padding: 20px;
-  }
-
+/* ────────────────────────────────────────────────────────────────
+   RESPONSIVE
+──────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .auth-card,
   .card {
-    padding: 20px 10px 20px 10px;
+    width: 95%;
   }
 
-  .player-area {
-    gap: 15px;
+  header.header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .vinyl {
-    width: 120px;
-    height: 120px;
-  }
-
-  #audioPlayer {
-    width: 100%;
+  header.header p.subtitle {
+    margin-left: 0;
   }
 }

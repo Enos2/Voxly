@@ -1,179 +1,150 @@
-const API_BASE = "http://localhost:5000";
-const LIST_ROUTE = `${API_BASE}/api/audio/list`;
-const STREAM_ROUTE = `${API_BASE}/uploads/`;
-const AUTH_ROUTE = `${API_BASE}/api/auth`;
-
-// UI Elements
+// DOM ELEMENTS
+const registerBlock = document.getElementById("registerBlock");
+const loginBlock = document.getElementById("loginBlock");
+const authCard = document.getElementById("authCard");
+const playerCard = document.getElementById("playerCard");
+const logoutBtn = document.getElementById("logoutBtn");
 const trackSelect = document.getElementById("trackSelect");
 const audioPlayer = document.getElementById("audioPlayer");
 const nowPlaying = document.getElementById("nowPlaying");
 const status = document.getElementById("status");
 
-const loginBlock = document.getElementById("loginBlock");
-const registerBlock = document.getElementById("registerBlock");
-const logoutBlock = document.getElementById("logoutBlock");
-const audioSection = document.getElementById("audioSection");
-const welcomeUser = document.getElementById("welcomeUser");
+// API BASE
+const API_BASE = "http://localhost:5000/api";
 
-// ─── Token Management ───
-function saveToken(token) {
-  localStorage.setItem("voxly_token", token);
+// Hide elements initially
+playerCard.style.display = "none";
+logoutBtn.style.display = "none";
+
+// HELPER FUNCTION: Set auth state
+function setLoggedIn(user, token) {
+  localStorage.setItem("token", token);
+  localStorage.setItem("username", user.username);
+
+  authCard.style.display = "none";
+  playerCard.style.display = "block";
+  logoutBtn.style.display = "block";
+
+  loadTracks();
 }
 
-function getToken() {
-  return localStorage.getItem("voxly_token");
+// HELPER FUNCTION: Clear auth state
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("username");
+  authCard.style.display = "block";
+  playerCard.style.display = "none";
+  logoutBtn.style.display = "none";
+  audioPlayer.pause();
+  audioPlayer.src = "";
+  nowPlaying.textContent = "Not playing";
+  trackSelect.innerHTML = '<option value="">Loading tracks…</option>';
 }
 
-function removeToken() {
-  localStorage.removeItem("voxly_token");
-}
-
-// ─── UI Updates ───
-function setStatus(msg, isError = false) {
-  status.textContent = msg || "";
-  status.style.color = isError ? "#ff7777" : "#b7c6cc";
-}
-
-function updateAuthUI(user = null) {
-  const token = getToken();
-  if (token && user) {
-    loginBlock.style.display = "none";
-    registerBlock.style.display = "none";
-    logoutBlock.style.display = "block";
-    audioSection.style.display = "flex";
-    welcomeUser.textContent = `Welcome, ${user.username}`;
-  } else {
-    loginBlock.style.display = "block";
-    registerBlock.style.display = "block";
-    logoutBlock.style.display = "none";
-    audioSection.style.display = "none";
-  }
-}
-
-// ─── Auth Functions ───
+// REGISTER
 async function handleRegister() {
-  const name = document.getElementById("reg-name").value.trim();
-  const email = document.getElementById("reg-email").value.trim();
-  const password = document.getElementById("reg-password").value.trim();
+  const name = document.getElementById("reg-name").value;
+  const email = document.getElementById("reg-email").value;
+  const password = document.getElementById("reg-password").value;
 
-  if (!name || !email || !password) return alert("Please fill all fields");
-
-  setStatus("Registering...");
   try {
-    const res = await fetch(`${AUTH_ROUTE}/register`, {
+    const res = await fetch(`${API_BASE}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Registration failed");
 
-    saveToken(data.token);
-    setStatus("Registration successful!");
-    updateAuthUI(data.user);
-    loadTracks();
+    if (!res.ok) throw new Error(data.message);
+
+    // Auto-login after registration
+    setLoggedIn(data.user, data.token);
+
+    status.textContent = "Registration successful!";
+    status.style.color = "#00ff99";
   } catch (err) {
-    console.error(err);
-    setStatus(err.message, true);
+    status.textContent = err.message;
+    status.style.color = "red";
   }
 }
 
+// LOGIN
 async function handleLogin() {
-  const email = document.getElementById("login-email").value.trim();
-  const password = document.getElementById("login-password").value.trim();
-  if (!email || !password) return alert("Please enter email and password");
+  const email = document.getElementById("login-email").value;
+  const password = document.getElementById("login-password").value;
 
-  setStatus("Logging in...");
   try {
-    const res = await fetch(`${AUTH_ROUTE}/login`, {
+    const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Login failed");
 
-    saveToken(data.token);
-    setStatus("Login successful!");
-    updateAuthUI(data.user);
-    loadTracks();
+    if (!res.ok) throw new Error(data.message);
+
+    setLoggedIn(data.user, data.token);
+
+    status.textContent = "Login successful!";
+    status.style.color = "#00ff99";
   } catch (err) {
-    console.error(err);
-    setStatus(err.message, true);
+    status.textContent = err.message;
+    status.style.color = "red";
   }
 }
 
-async function handleLogout() {
-  const token = getToken();
-  if (!token) return;
-
-  setStatus("Logging out...");
-  removeToken();
-  updateAuthUI();
-  setStatus("Logged out");
+// LOGOUT
+function handleLogout() {
+  logout();
+  status.textContent = "Logged out successfully.";
+  status.style.color = "#0284f6";
 }
 
-// ─── Audio Player Functions ───
+// LOAD TRACKS
 async function loadTracks() {
-  setStatus("Loading tracks...");
   try {
-    const res = await fetch(LIST_ROUTE);
-    if (!res.ok) throw new Error(`Server error ${res.status}`);
-    const files = await res.json();
+    const res = await fetch(`${API_BASE}/audio/list`);
+    const tracks = await res.json();
 
-    if (!Array.isArray(files) || files.length === 0) {
-      trackSelect.innerHTML = `<option value="">No tracks found</option>`;
-      setStatus("No audio files found.");
+    if (!Array.isArray(tracks) || tracks.length === 0) {
+      trackSelect.innerHTML = '<option value="">No tracks available</option>';
       return;
     }
 
-    trackSelect.innerHTML = files
+    trackSelect.innerHTML = tracks
       .map(
-        (file) =>
-          `<option value="${encodeURIComponent(file.title)}">${file.title}</option>`
+        (track) =>
+          `<option value="${track.streamUrl}">${track.title}</option>`
       )
       .join("");
 
-    setStatus(`Loaded ${files.length} track${files.length > 1 ? "s" : ""}.`);
-    playSelected();
-  } catch (err) {
-    console.error(err);
-    setStatus("Failed to load tracks.", true);
-  }
-}
+    // Auto-select first track
+    audioPlayer.src = tracks[0].streamUrl;
+    nowPlaying.textContent = tracks[0].title;
 
-function playSelected() {
-  const selectedOption = trackSelect.options[trackSelect.selectedIndex];
-  if (!selectedOption || !selectedOption.value) {
-    nowPlaying.textContent = "Not playing";
-    audioPlayer.src = "";
-    return;
-  }
-
-  const filename = selectedOption.value;
-  audioPlayer.src = `${STREAM_ROUTE}${filename}.mp3`;
-  audioPlayer.load();
-  audioPlayer
-    .play()
-    .then(() => {
-      nowPlaying.textContent = `Now playing: ${filename}`;
-    })
-    .catch((err) => {
-      console.error("Playback error:", err);
-      setStatus("Could not play file.", true);
+    trackSelect.addEventListener("change", () => {
+      const selected = trackSelect.value;
+      audioPlayer.src = selected;
+      const title =
+        trackSelect.options[trackSelect.selectedIndex].textContent;
+      nowPlaying.textContent = title;
+      audioPlayer.play();
     });
+  } catch (err) {
+    status.textContent = "Failed to load tracks.";
+    status.style.color = "red";
+  }
 }
 
-// Event Listeners
-trackSelect.addEventListener("change", playSelected);
-audioPlayer.addEventListener("ended", () => (nowPlaying.textContent = "Not playing"));
+// CHECK LOCALSTORAGE ON LOAD
+window.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("token");
+  const username = localStorage.getItem("username");
 
-// Initialize app
-const savedToken = getToken();
-if (savedToken) {
-  // Optional: fetch user info from backend to update UI (simplified here)
-  updateAuthUI({ username: "User" });
-  loadTracks();
-} else {
-  updateAuthUI();
-}
+  if (token && username) {
+    authCard.style.display = "none";
+    playerCard.style.display = "block";
+    logoutBtn.style.display = "block";
+    loadTracks();
+  }
+});

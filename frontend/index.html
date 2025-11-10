@@ -2,10 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Voxly • Your Voice Your Stage</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Voxly • Player</title>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="assets/voxly-logo.png" type="image/png" />
 </head>
 <body>
   <div class="container">
@@ -18,38 +17,32 @@
     </header>
 
     <!-- AUTHENTICATION AREA -->
-    <section class="auth-card">
+    <section class="auth-card" id="authCard">
       <h2>Account</h2>
-      <div class="auth-forms">
 
-        <!-- Register -->
-        <div class="auth-block" id="registerBlock">
-          <h3>Register</h3>
-          <input id="reg-name" type="text" placeholder="Full name" />
-          <input id="reg-email" type="email" placeholder="Email" />
-          <input id="reg-password" type="password" placeholder="Password" />
-          <button onclick="handleRegister()">Register</button>
-        </div>
+      <!-- Register -->
+      <div class="auth-block" id="registerBlock">
+        <h3>Register</h3>
+        <input id="reg-name" type="text" placeholder="Full name" />
+        <input id="reg-email" type="email" placeholder="Email" />
+        <input id="reg-password" type="password" placeholder="Password" />
+        <button onclick="handleRegister()">Register</button>
+      </div>
 
-        <!-- Login -->
-        <div class="auth-block" id="loginBlock">
-          <h3>Login</h3>
-          <input id="login-email" type="email" placeholder="Email" />
-          <input id="login-password" type="password" placeholder="Password" />
-          <button onclick="handleLogin()">Login</button>
-        </div>
-
-        <!-- Logout -->
-        <div class="auth-block" id="logoutBlock" style="display:none;">
-          <h3 id="welcomeUser">Welcome Back</h3>
-          <button onclick="handleLogout()">Logout</button>
-        </div>
-
+      <!-- Login -->
+      <div class="auth-block" id="loginBlock">
+        <h3>Login</h3>
+        <input id="login-email" type="email" placeholder="Email" />
+        <input id="login-password" type="password" placeholder="Password" />
+        <button onclick="handleLogin()">Login</button>
       </div>
     </section>
 
-    <!-- AUDIO PLAYER (HIDDEN UNTIL LOGIN) -->
-    <main class="card" id="audioSection" style="display:none;">
+    <!-- LOGOUT BUTTON -->
+    <button id="logoutBtn" onclick="handleLogout()">Logout</button>
+
+    <!-- AUDIO PLAYER -->
+    <main class="card" id="playerCard">
       <div class="list-area">
         <label for="trackSelect" class="label">Available Tracks</label>
         <select id="trackSelect" aria-label="Select track">
@@ -68,7 +61,6 @@
       <div id="status" class="status"></div>
     </main>
 
-    <!-- FOOTER -->
     <footer class="footer">
       <small>Voxly • Backend: localhost:5000</small>
     </footer>
@@ -76,15 +68,5 @@
   </div>
 
   <script src="script.js"></script>
-  <script>
-    // Hide audio section until user is logged in
-    function showAudioSection() {
-      document.getElementById("audioSection").style.display = "flex";
-    }
-
-    function hideAudioSection() {
-      document.getElementById("audioSection").style.display = "none";
-    }
-  </script>
 </body>
 </html>
