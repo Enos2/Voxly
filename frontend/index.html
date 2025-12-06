@@ -1,71 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Voxly • Player</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voxly — Home</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="container">
 
-    <!-- HEADER / LOGO -->
-    <header class="header">
-      <img src="assets/voxly-logo.png" alt="Voxly Logo" class="logo" />
-      <h1>Voxly</h1>
-      <p class="subtitle">Your voice. Your stage.</p>
-    </header>
+  <!-- Header -->
+  <header class="vx-header">
+    <div class="vx-left">
+      <img src="assets/voxly-logo.png" alt="Voxly" class="vx-logo" />
+      <h1 class="vx-title">Voxly</h1>
+    </div>
 
-    <!-- AUTHENTICATION AREA -->
-    <section class="auth-card" id="authCard">
-      <h2>Account</h2>
+    <div class="vx-center">
+      <input id="searchInput" placeholder="Search rooms, creators..." />
+    </div>
 
-      <!-- Register -->
-      <div class="auth-block" id="registerBlock">
-        <h3>Register</h3>
-        <input id="reg-name" type="text" placeholder="Full name" />
-        <input id="reg-email" type="email" placeholder="Email" />
-        <input id="reg-password" type="password" placeholder="Password" />
-        <button onclick="handleRegister()">Register</button>
+    <div class="vx-right">
+      <button id="notifBtn" class="icon-btn">🔔</button>
+      <button id="profileBtn" class="icon-btn">👤</button>
+    </div>
+  </header>
+
+  <!-- Live Now Carousel -->
+  <section class="live-now">
+    <h3>Live Now</h3>
+    <div id="liveCarousel" class="carousel"></div>
+  </section>
+
+  <!-- Tabs -->
+  <section class="tabs">
+    <button class="tab-btn active" data-tab="echoLine">🔷 EchoLine</button>
+    <button class="tab-btn" data-tab="yourCircle">🔶 Your Circle</button>
+  </section>
+
+  <!-- Hero Live Card (TikTok-style big card) -->
+  <section id="heroCard" class="hero-card">
+    <!-- Filled dynamically -->
+  </section>
+
+  <!-- Secondary Feed (Spotify-style small cards) -->
+  <main class="secondary-feed">
+    <h4 id="feedTitle">Recommended Rooms</h4>
+    <div id="roomList" class="room-list"></div>
+  </main>
+
+  <!-- Suggested Creators -->
+  <section class="creators-bar">
+    <h4>Suggested Creators</h4>
+    <div id="creators" class="creators"></div>
+  </section>
+
+  <!-- Floating Action Button (Start Live) -->
+  <button id="startLiveBtn" class="fab">🎙️</button>
+
+  <!-- Player / Mini controls -->
+  <footer class="vx-player">
+    <div class="player-left">
+      <img src="assets/voxly-logo.png" alt="logo" class="mini-logo" />
+      <div class="track-meta">
+        <div id="playerTitle">No room joined</div>
+        <div id="playerCreator" class="small">—</div>
       </div>
+    </div>
+    <div class="player-controls">
+      <button id="prevBtn" class="ctrl">⏮</button>
+      <button id="playBtn" class="ctrl">▶️</button>
+      <button id="nextBtn" class="ctrl">⏭</button>
+    </div>
+    <label for="seekBar">Seek</label>
+    <input id="seekBar" type="range" min="0" max="100" value="0" title="Seek through audio" />
+  </footer>
 
-      <!-- Login -->
-      <div class="auth-block" id="loginBlock">
-        <h3>Login</h3>
-        <input id="login-email" type="email" placeholder="Email" />
-        <input id="login-password" type="password" placeholder="Password" />
-        <button onclick="handleLogin()">Login</button>
+  <!-- Join Modal -->
+  <div id="joinModal" class="modal hidden">
+    <div class="modal-card">
+      <button id="closeModal" class="close">✖</button>
+      <div id="modalContent"></div>
+      <div class="modal-actions">
+        <button id="joinBtn" class="primary">Join Live</button>
+        <button id="listenBtn" class="secondary">Listen Only</button>
       </div>
-    </section>
-
-    <!-- LOGOUT BUTTON -->
-    <button id="logoutBtn" onclick="handleLogout()">Logout</button>
-
-    <!-- AUDIO PLAYER -->
-    <main class="card" id="playerCard">
-      <div class="list-area">
-        <label for="trackSelect" class="label">Available Tracks</label>
-        <select id="trackSelect" aria-label="Select track">
-          <option value="">Loading tracks…</option>
-        </select>
-      </div>
-
-      <div class="player-area">
-        <div class="cover-art">
-          <div class="vinyl"></div>
-        </div>
-        <audio id="audioPlayer" controls preload="none"></audio>
-        <div id="nowPlaying" class="now-playing">Not playing</div>
-      </div>
-
-      <div id="status" class="status"></div>
-    </main>
-
-    <footer class="footer">
-      <small>Voxly • Backend: localhost:5000</small>
-    </footer>
-
+    </div>
   </div>
+
+  <audio id="audioPlayer"></audio>
 
   <script src="script.js"></script>
 </body>
