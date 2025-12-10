@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Voxly — Home</title>
+  <!-- favicon (browser tab logo) -->
+  <link rel="icon" href="assets/voxly-logo.png" type="image/png" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -11,7 +13,7 @@
   <!-- Header -->
   <header class="vx-header">
     <div class="vx-left">
-      <img src="assets/voxly-logo.png" alt="Voxly" class="vx-logo" />
+      <img src="assets/voxly-logo.png" alt="Voxly Logo" class="vx-logo" />
       <h1 class="vx-title">Voxly</h1>
     </div>
 
@@ -20,29 +22,29 @@
     </div>
 
     <div class="vx-right">
-      <button id="notifBtn" class="icon-btn">🔔</button>
-      <button id="profileBtn" class="icon-btn">👤</button>
+      <button id="notifBtn" class="icon-btn" title="Notifications">🔔</button>
+      <button id="profileBtn" class="icon-btn" title="Profile">👤</button>
     </div>
   </header>
 
   <!-- Live Now Carousel -->
-  <section class="live-now">
+  <section class="live-now" aria-label="Live suggestions">
     <h3>Live Now</h3>
-    <div id="liveCarousel" class="carousel"></div>
+    <div id="liveCarousel" class="carousel" role="list"></div>
   </section>
 
-  <!-- Tabs -->
-  <section class="tabs">
-    <button class="tab-btn active" data-tab="echoLine">🔷 EchoLine</button>
-    <button class="tab-btn" data-tab="yourCircle">🔶 Your Circle</button>
+  <!-- Tabs: EXACT 4 tabs, no duplicates -->
+  <section class="tabs" role="tablist" aria-label="Main tabs">
+    <button class="tab-btn active" data-tab="echoLine" role="tab" aria-selected="true">🔷 EchoLine</button>
+    <button class="tab-btn" data-tab="yourCircle" role="tab" aria-selected="false">🔶 Your Circle</button>
+    <button class="tab-btn" data-tab="pulse" role="tab" aria-selected="false">⚡ Pulse</button>
+    <button class="tab-btn" data-tab="crewWave" role="tab" aria-selected="false">🌊 CrewWave</button>
   </section>
 
-  <!-- Hero Live Card (TikTok-style big card) -->
-  <section id="heroCard" class="hero-card">
-    <!-- Filled dynamically -->
-  </section>
+  <!-- Hero Live Card -->
+  <section id="heroCard" class="hero-card" aria-live="polite"></section>
 
-  <!-- Secondary Feed (Spotify-style small cards) -->
+  <!-- Secondary Feed -->
   <main class="secondary-feed">
     <h4 id="feedTitle">Recommended Rooms</h4>
     <div id="roomList" class="room-list"></div>
@@ -51,11 +53,11 @@
   <!-- Suggested Creators -->
   <section class="creators-bar">
     <h4>Suggested Creators</h4>
-    <div id="creators" class="creators"></div>
+    <div id="creators" class="creators" aria-label="Suggested creators"></div>
   </section>
 
-  <!-- Floating Action Button (Start Live) -->
-  <button id="startLiveBtn" class="fab">🎙️</button>
+  <!-- Floating Action Button -->
+  <button id="startLiveBtn" class="fab" title="Start Live">🎙️</button>
 
   <!-- Player / Mini controls -->
   <footer class="vx-player">
@@ -66,19 +68,19 @@
         <div id="playerCreator" class="small">—</div>
       </div>
     </div>
-    <div class="player-controls">
-      <button id="prevBtn" class="ctrl">⏮</button>
-      <button id="playBtn" class="ctrl">▶️</button>
-      <button id="nextBtn" class="ctrl">⏭</button>
+    <div class="player-controls" role="group" aria-label="Player controls">
+      <button id="prevBtn" class="ctrl" title="Previous">⏮</button>
+      <button id="playBtn" class="ctrl" title="Play/Pause">▶️</button>
+      <button id="nextBtn" class="ctrl" title="Next">⏭</button>
     </div>
-    <label for="seekBar">Seek</label>
+    <label for="seekBar" class="sr-only">Seek</label>
     <input id="seekBar" type="range" min="0" max="100" value="0" title="Seek through audio" />
   </footer>
 
   <!-- Join Modal -->
-  <div id="joinModal" class="modal hidden">
+  <div id="joinModal" class="modal hidden" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-card">
-      <button id="closeModal" class="close">✖</button>
+      <button id="closeModal" class="close" title="Close">✖</button>
       <div id="modalContent"></div>
       <div class="modal-actions">
         <button id="joinBtn" class="primary">Join Live</button>

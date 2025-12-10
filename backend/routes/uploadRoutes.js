@@ -2,7 +2,7 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
-import { protect } from "../middleware/authMiddleware.js";
+import { authMiddleware } from "../middleware/authMiddleware.js"; // ✅ updated
 
 const router = express.Router();
 
@@ -49,7 +49,7 @@ const upload = multer({
 // @route   POST /api/upload/audio
 // @desc    Upload audio file
 // @access  Private
-router.post("/audio", protect, upload.single("audio"), (req, res) => {
+router.post("/audio", authMiddleware, upload.single("audio"), (req, res) => {
   res.status(200).json({
     message: "File uploaded successfully",
     filePath: `/uploads/${req.file.filename}`,

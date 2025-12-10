@@ -6,10 +6,14 @@ import Like from "../models/likeModel.js";
 ─────────────────────────────── */
 export const addComment = async (req, res) => {
   try {
-    const { content, targetType, targetId, author } = req.body;
-    if (!content || !targetType || !targetId || !author) {
+    const { content, targetType, targetId } = req.body;
+
+    if (!content || !targetType || !targetId) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
+    // Use authenticated user ID
+    const author = req.user.id;
 
     const comment = await Comment.create({ content, targetType, targetId, author });
     res.status(201).json({ message: "Comment added", comment });
@@ -24,7 +28,15 @@ export const addComment = async (req, res) => {
 ─────────────────────────────── */
 export const toggleLike = async (req, res) => {
   try {
-    const { user, targetType, targetId, type } = req.body;
+    const { targetType, targetId, type } = req.body;
+
+    if (!targetType || !targetId || !type) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Use authenticated user ID
+    const user = req.user.id;
+
     const existing = await Like.findOne({ user, targetType, targetId });
 
     if (existing) {

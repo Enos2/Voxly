@@ -179,3 +179,28 @@ export const moderateAudio = async (req, res) => {
     res.status(500).json({ message: "Failed to update moderation", error: error.message });
   }
 };
+
+// ✅ DELETE AUDIO (uploader or admin)
+export const deleteAudio = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const audio = await Audio.findById(id);
+    if (!audio) return res.status(404).json({ message: "Audio not found" });
+
+    // Only uploader or admin can delete
+    if (audio.uploader.toString() !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Unauthorized to delete this audio" });
+    }
+
+    const filePath = audio.filePath ? path.resolve(audio.filePath) : null;
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    await audio.deleteOne();
+    res.status(200).json({ message: "Audio deleted successfully" });
+  } catch (error) {
+    console.error("❌ Delete audio error:", error);
+    res.status(500).json({ message: "Failed to delete audio", error: error.message });
+  }
+};

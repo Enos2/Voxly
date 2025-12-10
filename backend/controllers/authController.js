@@ -2,31 +2,28 @@ import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import TokenBlacklist from "../models/tokenBlacklistModel.js"; 
 dotenv.config();
 
-// Generate JWT token
+// 🔑 Generate JWT token
 const generateToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
 
-// Register new user
+// ───────────────────────────────
+// 📝 Register new user
+// ───────────────────────────────
 export const register = async (req, res) => {
   try {
-    console.log("📩 Registration request:", req.body);
-
-    // Accept both 'name' and 'username' from frontend
     const { name, username: rawUsername, email, password } = req.body;
-    const username = rawUsername || name; // fallback if only 'name' provided
+    const username = rawUsername || name;
 
-    if (!username || !email || !password) {
+    if (!username || !email || !password)
       return res.status(400).json({ message: "All fields are required" });
-    }
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (existingUser)
       return res.status(400).json({ message: "Email already in use" });
-    }
 
-    // Hash password before saving
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -52,17 +49,19 @@ export const register = async (req, res) => {
   }
 };
 
-// Login user
+// ───────────────────────────────
+// 🔐 Login user
+// ───────────────────────────────
 export const login = async (req, res) => {
   try {
-    console.log("📩 Login request:", req.body);
     const { email, password } = req.body;
 
     if (!email || !password)
-      return res.status(400).json({ message: "Email and password required" });
+      return res.status(400).json({ message: "Email and password are required" });
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user)
+      return res.status(404).json({ message: "User not found" });
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch)
@@ -84,11 +83,25 @@ export const login = async (req, res) => {
   }
 };
 
-// Logout user
-export const logout = async (req, res) => {
+// ───────────────────────────────
+// 🚪 Logout user — blacklist token
+// ───────────────────────────────
+export const logoutUser = async (req, res) => {
   try {
-    // If using cookies, you can clear them here, e.g. res.clearCookie("token")
-    // If using localStorage token, just inform frontend to remove it
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer "))
+      return res.status(400).json({ message: "Token missing" });
+
+    const token = authHeader.split(" ")[1];
+
+    const decoded = jwt.decode(token);
+    if (!decoded || !decoded.exp)
+      return res.status(400).json({ message: "Invalid token" });
+
+    const expiry = new Date(decoded.exp * 1000);
+
+    await TokenBlacklist.create({ token, expiresAt: expiry });
+
     res.status(200).json({ message: "User logged out successfully" });
   } catch (error) {
     console.error("❌ Logout Error:", error.message);
